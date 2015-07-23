@@ -12,7 +12,9 @@ public class AirControl : MonoBehaviour {
 	float speed;
 	public GameObject backGround1;
 	public GameObject backGround2;
+	public GameObject ant;
 	public float delta = 0.01F;
+
 
 
 	public float TimerBurst = 5;
@@ -21,7 +23,7 @@ public class AirControl : MonoBehaviour {
 
 	void Start (){
 		_timerBurst = TimerBurst; 
-		gameObject.transform.localScale = new Vector3(0, 0, 0);
+		gameObject.transform.localScale = new Vector2(0, 0);
 	} 
 	void Update () 
 	{ 
@@ -29,12 +31,20 @@ public class AirControl : MonoBehaviour {
 		{
 			if (gameObject.transform.localScale.x >= 1)
 				{
-					if (((transform.localPosition.x > LimitRight)& (Input.GetAxis ("Horizontal")>0))|			
-		    			((transform.localPosition.x < LimitLeft)& (Input.GetAxis ("Horizontal")<0)))
+					if (IsOutScreen)
+					{
 						lim = 0; 
-						else lim =  (Input.GetAxis ("Horizontal")*RotationSpeedRightLeft);
+					}
+					else 
+					{
+						if (Application.platform == RuntimePlatform.Android)lim =  (Input.acceleration.x*RotationSpeedRightLeft);
+						else lim =  (Input.GetAxis ("Horizontal")*RotationSpeedRightLeft); 
+						ant.transform.rotation =
+							Quaternion.Euler(ant.transform.rotation.eulerAngles.x,-90*Input.GetAxis ("Horizontal"), ant.transform.rotation.eulerAngles.z); 
+					}
 		
-						speed = (Input.GetAxis ("Vertical") * RotationSpeedRightLeft)+Speed;
+				if(Application.platform == RuntimePlatform.Android)lim =  (Input.acceleration.z* RotationSpeedRightLeft)+Speed;
+				else 	speed = (Input.GetAxis ("Vertical") * RotationSpeedRightLeft)+Speed;
 						transform.Translate (new Vector2 (lim, speed));					
 			} else {gameObject.transform.localScale = new Vector3(gameObject.transform.localScale.x+delta,
 				                                                     gameObject.transform.localScale.y+delta,
@@ -48,15 +58,22 @@ public class AirControl : MonoBehaviour {
 						}
 
 	}
-	void Burst(){
+	private void Burst(){
 		
 		gameObject.transform.localScale = new Vector3(0, 0, 0);
 		gameObject.renderer.enabled = true;
-		backGround1.transform.localPosition = new Vector2(0, -BackGround.SizeY);
-		backGround2.transform.localPosition = new Vector2(0, BackGround.SizeY);
+		backGround1.transform.localPosition = new Vector2(0, 0);
+		backGround2.transform.localPosition = new Vector2(0, 0);
 		gameObject.transform.localPosition = new Vector2(0, 0);
 		--Result.Life;
 		
 		
+	}
+
+	private bool IsOutScreen{
+		get{
+			return ((transform.localPosition.x > LimitRight)& (Input.GetAxis ("Horizontal")>0))|			
+				((transform.localPosition.x < LimitLeft)& (Input.GetAxis ("Horizontal")<0));
+		}
 	}
 }
